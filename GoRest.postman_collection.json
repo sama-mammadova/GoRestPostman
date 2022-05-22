@@ -1,0 +1,370 @@
+{
+	"info": {
+		"_postman_id": "b1dcdf41-1a73-4605-a8f7-d042eeaf3084",
+		"name": "GoRest",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18974590"
+	},
+	"item": [
+		{
+			"name": "Create User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"User created with correct data\", function () {\r",
+							"    var responseBody = pm.response.json();\r",
+							"    const requestBody = JSON.parse(pm.request.body)\r",
+							"    pm.expect(responseBody.name).to.eql(requestBody.name);\r",
+							"    pm.expect(responseBody.email).to.eql(requestBody.email);\r",
+							"    pm.expect(responseBody.gender).to.eql(requestBody.gender);\r",
+							"    pm.expect(responseBody.status).to.eql(requestBody.status);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"{{$randomFullName}}\",\r\n    \"gender\": \"male\",\r\n    \"email\": \"{{$randomEmail}}\",\r\n    \"status\": \"active\"\r\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create User - Empty email field",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is not 201\", function () {\r",
+							"    pm.response.to.not.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Error message check\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"can't be blank\");\r",
+							"});\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"{{$randomFullName}}\",\r\n    \"gender\": \"male\",\r\n    \"email\": \"\",\r\n    \"status\": \"active\"\r\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create User - Invalid json body",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{ invalid json body >"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update User",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"token = pm.environment.get('accessToken')\r",
+							"const email = pm.variables.replaceIn('{{$randomEmail}}')\r",
+							"pm.environment.set('email', '{{$randomEmail}}')\r",
+							"\r",
+							"const postRequest = {\r",
+							"    url: pm.variables.get(\"baseUrl\") + \"/users\",\r",
+							"    method: 'POST',\r",
+							"    header: {\r",
+							"        'Content-Type': 'application/json',\r",
+							"        'Authorization': 'Bearer ' + token\r",
+							"    },\r",
+							"    body: {\r",
+							"        mode: 'raw',\r",
+							"        raw: JSON.stringify({\r",
+							"                \"name\": \"Sama Mammadova\",\r",
+							"                \"gender\": \"female\",\r",
+							"                \"email\": email,\r",
+							"                \"status\": \"active\"\r",
+							"            }\r",
+							"        )\r",
+							"    }\r",
+							"};\r",
+							"\r",
+							"pm.sendRequest(postRequest, (error, response) => {\r",
+							"    console.log(postRequest)\r",
+							"    console.log(error ? error : response.json());\r",
+							"    let userId = response.json().id\r",
+							"    pm.environment.set(\"userId\", userId)\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"User data is updated\", function () {\r",
+							"    var responseBody = pm.response.json();\r",
+							"    const requestBody = JSON.parse(pm.request.body)\r",
+							"    pm.expect(responseBody.name).to.eql(requestBody.name);\r",
+							"    pm.expect(responseBody.email).to.eql(requestBody.email);\r",
+							"    pm.expect(responseBody.gender).to.eql(requestBody.gender);\r",
+							"    pm.expect(responseBody.status).to.eql(requestBody.status);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"{{$randomFullName}}\",\r\n    \"gender\": \"male\",\r\n    \"email\": \"{{$randomEmail}}\",\r\n    \"status\": \"active\"\r\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/{{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"{{userId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete User",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"token = pm.environment.get('accessToken')\r",
+							"const email = pm.variables.replaceIn('{{$randomEmail}}')\r",
+							"pm.environment.set('email', '{{$randomEmail}}')\r",
+							"\r",
+							"const postRequest = {\r",
+							"    url: pm.variables.get(\"baseUrl\") + \"/users\",\r",
+							"    method: 'POST',\r",
+							"    header: {\r",
+							"        'Content-Type': 'application/json',\r",
+							"        'Authorization': 'Bearer ' + token\r",
+							"    },\r",
+							"    body: {\r",
+							"        mode: 'raw',\r",
+							"        raw: JSON.stringify({\r",
+							"    \"name\": \"Sama Mammadova\",\r",
+							"    \"gender\": \"female\",\r",
+							"    \"email\": email,\r",
+							"    \"status\": \"active\"\r",
+							"}\r",
+							"        )\r",
+							"    }\r",
+							"};\r",
+							"\r",
+							"pm.sendRequest(postRequest, (error, response) => {\r",
+							"    console.log(postRequest)\r",
+							"    console.log(error ? error : response.json());\r",
+							"    let userId = response.json().id\r",
+							"    pm.environment.set(\"userId\", userId)\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"//try to find user by sending delete request again\r",
+							"pm.test(\"User should not be found\", function () {\r",
+							"    const deleteRequest = {\r",
+							"        url: pm.variables.get(\"baseUrl\") + \"/users\",\r",
+							"        method: 'DELETE',\r",
+							"        header: {\r",
+							"            'Content-Type': 'application/json',\r",
+							"            'Authorization': 'Bearer ' + token\r",
+							"        },\r",
+							"    };\r",
+							"\r",
+							"    pm.sendRequest(deleteRequest, (error, response) => {\r",
+							"        pm.expect(response.code).to.be.eq(404)\r",
+							"    });\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{accessToken}}"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/{{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"{{userId}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
